@@ -1,0 +1,17 @@
+============================================================
+  POST-TRAINING SUMMARY
+============================================================
+  Training time         : 29.66 s
+  Epochs                : 5000
+  nPt (collocation)     : 100
+  Vel=1.0,  Diff=0.01,  Pe=100
+  Lambda_data           : 10.0
+  Final PDE loss        : 3.6413e-05
+  Final data loss       : 4.6563e-09
+  Final total loss      : 3.6459e-05
+  L2 absolute error     : 9.5378e-05
+  L2 relative error     : 9.6295e-05
+  Max pointwise error   : 7.9075e-04
+  BC check  C(0)=0.999995  (target 1.0)
+  BC check  C(1)=0.099211  (target 0.1)
+============================================================

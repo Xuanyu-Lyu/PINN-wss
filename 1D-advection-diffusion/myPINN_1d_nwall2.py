@@ -25,6 +25,7 @@ from torch.utils.data import DataLoader, TensorDataset,RandomSampler
 from math import exp, sqrt,pi
 import time
 import math
+import os
 
 
 def geo_train(device,x_in,xb,cb,batchsize,learning_rate,epochs,path,Flag_batch,C_analytical,Vel,Diff):
@@ -252,7 +253,7 @@ def geo_train(device,x_in,xb,cb,batchsize,learning_rate,epochs,path,Flag_batch,C
 	# -------------------------------------------------------------------------
 	# Training setup:
 	#   xd, cd : 3 sparse supervision points drawn from the analytical solution
-	#            at x ~ 0.5, 0.75, 0.98 (near the boundary layer at x=1).
+	#            at x ~ 0.3, 0.90, 0.98 (near the boundary layer at x=1).
 	#   scheduler: StepLR step-decay — LR multiplied by decay_rate every
 	#              step_epoch epochs (e.g. 1e-3 -> 2e-4 -> 4e-5 ...), allowing
 	#              large steps early and fine-tuning later.
@@ -263,8 +264,8 @@ def geo_train(device,x_in,xb,cb,batchsize,learning_rate,epochs,path,Flag_batch,C
 
 
 
-	xd = x_in[ [ int(nPt/2), int(3*nPt/4), int(9.8*nPt/10)    ] ] 
-	cd = C_analytical[ [ int(nPt/2), int(3*nPt/4), int(9.8*nPt/10)   ] ]
+	xd = x_in[ [ int(3*nPt/10), int(9*nPt/10), int(9.8*nPt/10)    ] ] 
+	cd = C_analytical[ [ int(3*nPt/10), int(9*nPt/10), int(9.8*nPt/10)   ] ]
 
 
 	if (Flag_schedule):
@@ -364,7 +365,29 @@ def geo_train(device,x_in,xb,cb,batchsize,learning_rate,epochs,path,Flag_batch,C
 	print("="*60 + "\n")
 
 	# -------------------------------------------------------------------------
-	# Post-training plots — 2x2 figure
+	# Save summary log to file
+	# -------------------------------------------------------------------------
+	os.makedirs(path, exist_ok=True)
+	log_path = os.path.join(path, 'training_summary.txt')
+	with open(log_path, 'w') as f:
+		f.write("=" * 60 + "\n")
+		f.write("  POST-TRAINING SUMMARY\n")
+		f.write("=" * 60 + "\n")
+		f.write(f"  Training time         : {elapseTime:.2f} s\n")
+		f.write(f"  Epochs                : {epochs}\n")
+		f.write(f"  nPt (collocation)     : {nPt}\n")
+		f.write(f"  Vel={Vel},  Diff={Diff},  Pe={Vel/Diff:.0f}\n")
+		f.write(f"  Lambda_data           : {Lambda_data}\n")
+		f.write(f"  Final PDE loss        : {LOSS[-1][1]:.4e}\n")
+		f.write(f"  Final data loss       : {LOSS[-1][2]:.4e}\n")
+		f.write(f"  Final total loss      : {LOSS[-1][3]:.4e}\n")
+		f.write(f"  L2 absolute error     : {L2_abs:.4e}\n")
+		f.write(f"  L2 relative error     : {L2_rel:.4e}\n")
+		f.write(f"  Max pointwise error   : {max_err:.4e}\n")
+		f.write(f"  BC check  C(0)={C_at_0:.6f}  (target {C_BC1:.1f})\n")
+		f.write(f"  BC check  C(1)={C_at_1:.6f}  (target {C_BC2:.1f})\n")
+		f.write("=" * 60 + "\n")
+	print(f"  Log saved  -> {log_path}")
 	#   [0,0] Solution comparison   [0,1] Loss history (log)
 	#   [1,0] Pointwise abs. error  [1,1] First-derivative comparison
 	# -------------------------------------------------------------------------
@@ -428,7 +451,18 @@ def geo_train(device,x_in,xb,cb,batchsize,learning_rate,epochs,path,Flag_batch,C
 	ax.grid(True, alpha=0.3)
 
 	plt.tight_layout()
+	fig_path = os.path.join(path, 'results_plot.png')
+	plt.savefig(fig_path, dpi=150, bbox_inches='tight')
+	print(f"  Figure saved -> {fig_path}")
 	plt.show()
+
+	# -------------------------------------------------------------------------
+	# Save loss history as CSV
+	# -------------------------------------------------------------------------
+	csv_path = os.path.join(path, 'loss_history.csv')
+	np.savetxt(csv_path, LOSS_arr, delimiter=',',
+			   header='epoch,loss_pde,loss_data,loss_total', comments='')
+	print(f"  Loss CSV saved -> {csv_path}\n")
 
 	return net2, LOSS
 
@@ -528,7 +562,7 @@ cb= cb.reshape(-1, 1) #need to reshape to get 2D array
 
 
 
-path = "Results/"
+path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Results")
 
 # =============================================================================
 # Analytical solution: C(x) = A*exp(Vel/Diff * x) + B
