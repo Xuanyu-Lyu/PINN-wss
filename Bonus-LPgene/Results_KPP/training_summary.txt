@@ -1,0 +1,18 @@
+============================================================
+  POST-TRAINING SUMMARY
+============================================================
+  Training time       : 4311.63 s
+  Device              : mps
+  Epochs              : 3000
+  Batch mode          : True
+  Lambda_data         : 20.0
+  Final PDE loss      : 1.9889e-06
+  Final data loss     : 8.8080e-02
+  Final total loss    : 1.7616e+00
+  Inferred D          : 8.742666e-05  deg2 yr-1
+  Inferred s          : 5.180009e-03  yr-1
+  --- Per generation (25 yr) ---
+  D per generation    : 2.185666e-03  deg2 gen-1
+  Dispersal distance  : 0.0935  deg gen-1  (10.4 km gen-1)
+  s per generation    : 1.295002e-01  gen-1
+============================================================
