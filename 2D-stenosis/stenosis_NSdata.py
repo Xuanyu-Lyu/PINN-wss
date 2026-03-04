@@ -452,10 +452,10 @@ def geo_train(device, x_in, y_in, xb, yb, ub, vb, xd, yd, ud, vd,
     y_cpu = y.detach().cpu()
 
     with torch.no_grad():
-        net_in   = torch.cat((x_cpu, y_cpu), 1)
-        output_u = net2_u(net_in).numpy()
-        output_v = net2_v(net_in).numpy()
-        output_p = net2_p(net_in).numpy()
+        net_in   = torch.cat((x_cpu, y_cpu), 1).to(device)
+        output_u = net2_u(net_in).cpu().numpy()
+        output_v = net2_v(net_in).cpu().numpy()
+        output_p = net2_p(net_in).cpu().numpy()
 
     x_np = x_cpu.numpy()
     y_np = y_cpu.numpy()
@@ -546,7 +546,7 @@ fieldname    = 'f_5-0'   # velocity field name in VTK file (verify in ParaView)
 
 batchsize     = 256
 learning_rate = 1e-5
-epochs        = 5500
+epochs        = 1000
 Flag_pretrain = False    # if True, loads weights from a previous run
 
 # Physical parameters

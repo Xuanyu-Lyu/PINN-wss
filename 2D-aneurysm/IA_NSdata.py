@@ -689,7 +689,7 @@ fieldname    = 'f_5-0'   # velocity field name in VTK file (verify in ParaView)
 
 batchsize     = 256
 learning_rate = 1e-5
-epochs        = 5500
+epochs        = 3000
 Flag_pretrain = False    # if True, loads weights from a previous run
 
 # Physical parameters

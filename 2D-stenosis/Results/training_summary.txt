@@ -1,0 +1,16 @@
+============================================================
+  POST-TRAINING SUMMARY
+============================================================
+  Training time   : 9917.34 s
+  Device          : mps
+  Epochs          : 1000
+  Batch mode      : True
+  Diff (nu)       : 0.001
+  rho             : 1.0
+  Lambda_BC       : 20.0
+  Lambda_data     : 1.0
+  Final PDE loss  : 6.7496e-03
+  Final BC  loss  : 1.4055e-04
+  Final data loss : 7.0059e-04
+  Final total loss: 1.0261e-02
+============================================================
