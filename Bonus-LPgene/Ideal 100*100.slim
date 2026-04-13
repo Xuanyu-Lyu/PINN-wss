@@ -1,0 +1,96 @@
+// 1. INITIALIZATION
+initialize() {
+    initializeSLiMOptions(dimensionality="xy");
+    initializeTreeSeq();
+
+    defineConstant("S_COEF", 0.05); 
+    initializeMutationType("m1", 0.5, "f", S_COEF);
+    m1.convertToSubstitution = F; 
+    
+    initializeGenomicElementType("g1", m1, 1.0);
+    initializeGenomicElement(g1, 0, 99999);
+    
+    initializeMutationRate(0.0);
+    initializeRecombinationRate(1e-8);
+
+    initializeInteractionType(1, "xy", reciprocal=T, maxDistance=10.0);
+    i1.setInteractionFunction("n", 1.0, 3.0); 
+}
+
+// 2. SET UP THE WORLD & POPULATION
+1 early() {
+    sim.addSubpop("p1", 10000);
+    p1.setSpatialBounds(c(0.0, 0.0, 100.0, 100.0));
+
+    for (ind in p1.individuals) {
+        ind.setSpatialPosition(p1.pointUniform());
+    }
+    
+    // FIX 1: Evaluate immediately after placing the first generation
+    i1.evaluate(p1);
+}
+
+// 3. INJECT THE BENEFICIAL MUTATION
+100 late() {
+    center_x = 50.0;
+    center_y = 50.0;
+    
+    // Calculate the squared distance to the center for everyone (Vectorized)
+    distances = (p1.individuals.x - center_x)^2 + (p1.individuals.y - center_y)^2;
+    
+    // Find the 20 individuals closest to the center
+    closest_inds = p1.individuals[order(distances)[0:19]];
+    
+    // Give all 50 of them the mutation
+    closest_inds.haplosomes.addNewDrawnMutation(m1, 50000);
+    
+    catn("Generation 100: Introduced sweeping mutation to the 50 individuals closest to the center.");
+}
+// 3.5 FAIL-SAFE: Check if the mutation survived early drift
+500 late() {
+    // Grab all mutations of our specific type (m1)
+    muts = sim.mutationsOfType(m1);
+    
+    // If the list is empty, the mutation died out
+    if (size(muts) == 0) {
+        stop("Generation 500: The mutation was lost to genetic drift! Please re-run the script.");
+    } else {
+        // If it survived, calculate its current frequency in the population
+        freq = sim.mutationFrequencies(p1, muts)[0];
+        catn("Generation 500: Mutation is alive and well! Current frequency: " + freq);
+    }
+}
+
+// 4. SPATIAL MATING DYNAMICS
+mateChoice() {
+    return i1.strength(individual);
+}
+
+// 5. SPATIAL DISPERSAL DYNAMICS
+modifyChild() {
+    sigma = 2.0; 
+    pos = parent1.spatialPosition + rnorm(2, 0.0, sigma);
+    pos = p1.pointReflected(pos);
+    child.setSpatialPosition(pos);
+    return T;
+}
+
+// 6. UPDATE SPATIAL MAP 
+1: late() {
+    // Evaluate the new adults at the end of the generation
+    i1.evaluate(p1);
+}
+
+100:2000 late() {
+    if (sim.cycle % 100 == 0) {
+        sim.treeSeqRememberIndividuals(p1.individuals);
+        catn("Saved snapshot at generation " + sim.cycle);
+    }
+}
+
+// 7. FINISH AND OUTPUT
+2000 late() {
+    sim.treeSeqOutput("fisher_kpp_spatial.trees");
+    catn("Simulation finished at generation 2000. Tree sequence saved.");
+    sim.simulationFinished();
+}
